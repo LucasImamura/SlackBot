@@ -16,42 +16,48 @@ app.event('message', async ({ event, client }) => {
 
 app.event('message', async ({ event, client }) => {
   if(event.files) {
-    var url = await event.files[0].url_private;
-    console.log(url);
-    const axios = require('axios');
-    const res = await axios.get(url, {
-      headers: {
-        'Authorization': 'Bearer ' +SLACK_BOT_TOKEN
-      },
-      responseType: 'stream'
-    });
+    if(event.files[0].filetype == "zip") {
+      var url = await event.files[0].url_private;
+      console.log(url);
+      const axios = require('axios');
+      const res = await axios.get(url, {
+        headers: {
+          'Authorization': 'Bearer ' +SLACK_BOT_TOKEN
+        },
+        responseType: 'stream'
+      });
 
-    var http = require('http');
-    var {Base64Encode} = require('base64-stream');
-    var arquivoBase64 = res.data.pipe(new Base64Encode()).pipe(process.stdout);
-    console.log(event.user);
-    console.log(event.channel);
+      const result2 = client.chat.postMessage({
+          channel: event.channel,
+          text: "Arquivo recebido."
+        });
+
+      var http = require('http');
+      var {Base64Encode} = require('base64-stream');
+      var arquivoBase64 = res.data.pipe(new Base64Encode()).pipe(process.stdout);
+      console.log(event.user);
+      console.log(event.channel);
 
 
-    const FormData = require('form-data');
-    const axios2 = require('axios');
-    const https = require('https');
+      const FormData = require('form-data');
+      const axios2 = require('axios');
+      const https = require('https');
 
-    const formData = new FormData();
-    
-    formData.append('userId', "1234");
-    formData.append('channelId', event.channel);
-    formData.append('file', arquivoBase64);
+      const formData = new FormData();
 
-    const res2 = await axios2.post('https://localhost:44314/handler1.ashx', formData, {
-      // You need to use `getHeaders()` in Node.js because Axios doesn't
-      // automatically set the multipart form boundary in Node.
-      headers: formData.getHeaders(),
-      httpsAgent: new https.Agent({
-        rejectUnauthorized: false
-      })
-      
-    });
+      formData.append('userId', "1234");
+      formData.append('channelId', event.channel);
+      formData.append('file', arquivoBase64);
+
+      const res2 = await axios2.post('https://localhost:44314/handler1.ashx', formData, {
+        // You need to use `getHeaders()` in Node.js because Axios doesn't
+        // automatically set the multipart form boundary in Node.
+        headers: formData.getHeaders(),
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: false
+        })
+      });
+    }
   }
 });
 
